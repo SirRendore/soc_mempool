@@ -25,6 +25,7 @@ dpi_library     ?= work-dpi
 # Top level module to compile
 top_level       ?= mempool_tb
 # QuestaSim Version
+# questa_version  ?= 2019.3-kgf
 questa_version  ?= 2021.2-bt
 # QuestaSim command
 questa_cmd      ?= questa-$(questa_version)
