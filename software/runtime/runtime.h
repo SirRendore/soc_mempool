@@ -99,14 +99,14 @@ static inline void mempool_init(const uint32_t core_id) {
 /// Reset a monotonically increasing cycle count.
 static inline void mempool_start_benchmark() {
   asm volatile("" ::: "memory");
-  write_csr(trace, 1);
+  write_csr(0x7d0, 1);
   asm volatile("" ::: "memory");
 }
 
 /// Obtain a monotonically increasing cycle count.
 static inline void mempool_stop_benchmark() {
   asm volatile("" ::: "memory");
-  write_csr(trace, 0);
+  write_csr(0x7d0, 0);
   asm volatile("" ::: "memory");
 }
 

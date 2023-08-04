@@ -23,7 +23,8 @@ int main() {
   }
 
   printf("Core %3d says Hello!\n", core_id);
-  wake_up(core_id + 1);
+  // if (core_id < 3)
+    wake_up(core_id + 1);
 
   // wait until all cores have finished
   mempool_barrier(num_cores);

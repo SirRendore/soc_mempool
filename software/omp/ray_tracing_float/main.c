@@ -16,18 +16,20 @@
 
 #define M_PI 3.141592653589793
 
+#define WIDTH (64)
+#define HEIGHT (64)
 
-#define WIDTH (4)
-#define HEIGHT (4)
+#define WIDTH_FLOAT (4.0f)
+#define HEIGHT_FLOAT (4.0f)
 //#define WIDTH (16)
 //#define HEIGHT (8)
 
-#define PRECISION (2048.0)
+#define PRECISION (2048.0f)
 
 
 #define VEC3_xyz(X, Y, Z) ((Vec3){.x = X, .y = Y, .z = Z})
 #define VEC3_x(X) VEC3_xyz(X, X, X)
-#define VEC3 VEC3_x(0)
+#define VEC3 VEC3_x(0.0f)
 typedef struct Vec3 {
   float x, y, z;
 } Vec3;
@@ -35,26 +37,27 @@ typedef struct Vec3 {
 Vec3 image[WIDTH * HEIGHT];
 
 static inline float sqrt_float(float x) {
-  if (x <= 0) {
-    return 0;
-  } else if (x < 2) {
-    return x; /* avoid div/0 */
-  }
-  unsigned val = (unsigned)x;
-  /* starting point is relatively unimportant */
-  unsigned a = PRECISION;
-  unsigned b;
+  // if (x <= 0) {
+  //   return 0;
+  // } else if (x < 2) {
+  //   return x; /* avoid div/0 */
+  // }
+  // unsigned val = (unsigned)x;
+  // /* starting point is relatively unimportant */
+  // unsigned a = PRECISION;
+  // unsigned b;
 
-  b = val / a;
-  a = (a + b) / 2;
-  b = val / a;
-  a = (a + b) / 2;
-  b = val / a;
-  a = (a + b) / 2;
-  b = val / a;
-  a = (a + b) / 2;
+  // b = val / a;
+  // a = (a + b) / 2;
+  // b = val / a;
+  // a = (a + b) / 2;
+  // b = val / a;
+  // a = (a + b) / 2;
+  // b = val / a;
+  // a = (a + b) / 2;
 
-  return (int)a;
+  // return a;
+  return sqrtf(x);
   // return sqrt_float(x);
 }
 
@@ -122,9 +125,9 @@ bool intersect(const Sphere sphere, const Vec3 rayorig, const Vec3 raydir,
 //[comment]
 // This variable controls the maximum recursion depth
 //[/comment]
-#define MAX_RAY_DEPTH 5
+#define MAX_RAY_DEPTH 3
 
-float mix(const int a, const int b, const int mix) {
+float mix(const float a, const float b, const float mix) {
   return b * mix + a * (1 - mix);
 }
 
@@ -177,7 +180,7 @@ Vec3 trace(const Vec3 rayorig, const Vec3 raydir, const Sphere *spheres,
   // set
   // the inside bool to true. Finally reverse the sign of IdotN which we want
   // positive.
-  float bias = 1e-4; // add some bias to the point from which we will be tracing
+  float bias = 1e-4f; // add some bias to the point from which we will be tracing
   bool inside = false;
   if (vec_dot(raydir, nhit) > 0) {
     nhit = vec_negate(nhit);
@@ -187,8 +190,8 @@ Vec3 trace(const Vec3 rayorig, const Vec3 raydir, const Sphere *spheres,
       depth < MAX_RAY_DEPTH) {
     float facingratio = -vec_dot(raydir, nhit) / PRECISION;
     // change the mix value to tweak the effect
-    float fresneleffect = mix(pow(PRECISION - facingratio, 3),
-                              0.8 * (PRECISION * PRECISION * PRECISION), 0.2) /
+    float fresneleffect = mix(powf(PRECISION - facingratio, 3),
+                              0.8f * (PRECISION * PRECISION * PRECISION), 0.2f) /
                           (PRECISION * PRECISION);
     // compute reflection direction (not need to normalize because all vectors
     // are already normalized)
@@ -201,7 +204,7 @@ Vec3 trace(const Vec3 rayorig, const Vec3 raydir, const Sphere *spheres,
     Vec3 refraction = VEC3;
     // if the sphere is also transparent compute refraction ray (transmission)
     if (sphere->transparency) {
-      float ior = 1.1;
+      float ior = 1.1f;
       float eta =
           (inside) ? ior : 1 / ior; // are we inside or outside the surface?
       float cosi = -vec_dot(nhit, raydir) / PRECISION;
@@ -267,17 +270,22 @@ void render(const Sphere *spheres, unsigned num_spheres) {
   Vec3 *pixel = image;
 // Trace rays
 // #pragma omp parallel for firstprivate(pixel) schedule(static)
-// #pragma omp parallel for collapse(2) firstprivate(pixel) schedule(static)
+float x_float, y_float;
+#pragma omp parallel for collapse(2) firstprivate(pixel) schedule(monotonic:dynamic, BLOCK_SIZE)
   for (int x = 0; x < WIDTH; ++x) {
     for (int y = 0; y < HEIGHT; ++y) {
-      Vec3 raydir = VEC3_xyz(-WIDTH / 2 + x, HEIGHT / 2 - y, -WIDTH * 1);
-      raydir = vec_scale(raydir, 1280 / WIDTH);
+      x_float = 0.0f;
+      while((int)x_float < x) x_float++;
+      y_float = 0.0f;
+      while((int)y_float < y) y_float++;
+      Vec3 raydir = VEC3_xyz(-WIDTH_FLOAT / 2.0f + x_float, HEIGHT_FLOAT / 2.0f - y_float, -WIDTH_FLOAT * 1.0f);
+      raydir = vec_scale(raydir, 1280.0f / WIDTH_FLOAT);
       raydir = vec_normalize(raydir);
       // printf("Check pixel %04d, raydir %d %d %d\n", x + y * WIDTH, raydir.x,
       //       raydir.y, raydir.z);
       const Sphere *local_spheres = spheres_ptr[mempool_get_core_id()];
       pixel[x + y * WIDTH] =
-          trace(VEC3_x(0), raydir, local_spheres, num_spheres, 0);
+          trace(VEC3_x(0.0f), raydir, local_spheres, num_spheres, 0);
     }
   }
   // Save result to a PPM image (keep these flags if you compile under Windows)
@@ -476,3 +484,4 @@ int main() {
 
   return 0;
 }
+

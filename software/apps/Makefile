@@ -33,7 +33,7 @@ $(APPS): % : $(BIN_DIR)/% $(APPS_DIR)/Makefile $(shell find $(RUNTIME_DIR)/**.{S
 $(BINARIES): $(BIN_DIR)/%: %/main.c.o $(RUNTIME) $(LINKER_SCRIPT) $(DATA) update_opcodes
 	mkdir -p $(dir $@)
 	$(RISCV_CC) -Iinclude $(RISCV_LDFLAGS) -o $@ $< $(RUNTIME) -T$(RUNTIME_DIR)/link.ld
-	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_FLAGS) -D $@ > $@.dump
+	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_FLAGS) -d $@ > $@.dump
 
 # Helper targets
 update_opcodes:

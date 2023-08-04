@@ -15,7 +15,7 @@ include $(MEMPOOL_DIR)/config/config.mk
 python             ?= python3
 
 INSTALL_DIR        ?= $(MEMPOOL_DIR)/install
-GCC_INSTALL_DIR    ?= $(INSTALL_DIR)/riscv-gcc
+GCC_INSTALL_DIR    ?= /usr/pack/riscv-1.0-kgf/pulp-gcc-2.6.0
 LLVM_INSTALL_DIR   ?= $(INSTALL_DIR)/llvm
 HALIDE_INSTALL_DIR ?= $(INSTALL_DIR)/halide
 HALIDE_INCLUDE     ?= $(HALIDE_INSTALL_DIR)/include
@@ -34,7 +34,7 @@ ifeq ($(COMPILER),gcc)
 	# Use GCC
 	# GCC compiler -march
 	ifeq ($(XPULPIMG),1)
-		RISCV_ARCH    ?= rv$(RISCV_XLEN)imaXpulpimg
+		RISCV_ARCH    ?= rv$(RISCV_XLEN)ima_zfinx
 		RISCV_ARCH_AS ?= $(RISCV_ARCH)
 		# Define __XPULPIMG if the extension is active
 		DEFINES       += -D__XPULPIMG
@@ -103,7 +103,7 @@ RISCV_LLVM_TARGET  ?= --target=$(RISCV_TARGET) --sysroot=$(GCC_INSTALL_DIR)/$(RI
 RISCV_WARNINGS += -Wunused-variable -Wconversion -Wall -Wextra # -Werror
 RISCV_FLAGS_COMMON_TESTS ?= -march=$(RISCV_ARCH) -mabi=$(RISCV_ABI) -I$(ROOT_DIR) -I$(HALIDE_INCLUDE) -static
 RISCV_FLAGS_COMMON ?= $(RISCV_FLAGS_COMMON_TESTS) -g -std=gnu99 -O3 -ffast-math -fno-common -fno-builtin-printf $(DEFINES) $(RISCV_WARNINGS)
-RISCV_FLAGS_GCC    ?= -mcmodel=medany -Wa,-march=$(RISCV_ARCH_AS) -mtune=mempool # -falign-loops=32 -falign-jumps=32
+RISCV_FLAGS_GCC    ?= -specs=$(ROOT_DIR)/mempool.spec -mcmodel=medany -Wa,-march=$(RISCV_ARCH_AS) # -falign-loops=32 -falign-jumps=32
 RISCV_FLAGS_LLVM   ?= -mcmodel=small -mllvm -misched-topdown -menable-experimental-extensions
 
 ifeq ($(COMPILER),gcc)
