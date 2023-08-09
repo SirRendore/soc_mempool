@@ -19,8 +19,8 @@
 #define WIDTH (64)
 #define HEIGHT (64)
 
-#define WIDTH_FLOAT (4.0f)
-#define HEIGHT_FLOAT (4.0f)
+#define WIDTH_FLOAT (64.0f)
+#define HEIGHT_FLOAT (64.0f)
 //#define WIDTH (16)
 //#define HEIGHT (8)
 
@@ -396,8 +396,8 @@ int main() {
                         .radius2 = 2 * 2,
                         .surfaceColor = VEC3_xyz(249, 199, 79),
                         .emissionColor = VEC3,
-                        .transparency = 0,
-                        .reflection = 0};
+                        .transparency = 1,
+                        .reflection = 1};
   spheres[3] = (Sphere){.center = VEC3_xyz(5, 0, -25),
                         .radius = 3,
                         .radius2 = 3 * 3,

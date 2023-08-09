@@ -25,8 +25,6 @@
 //#define HEIGHT (8)
 
 #define PRECISION (2048.0f)
-#define WINDOW (4)
-#define WINDOW_FLOAT (4.0f)
 
 
 #define VEC3_xyz(X, Y, Z) ((Vec3){.x = X, .y = Y, .z = Z})
@@ -272,40 +270,24 @@ void render(const Sphere *spheres, unsigned num_spheres) {
   Vec3 *pixel = image;
 // Trace rays
 // #pragma omp parallel for firstprivate(pixel) schedule(static)
-float x_win_float, y_win_float, i_float, j_float;
-#pragma omp parallel for collapse(4) firstprivate(pixel) schedule(static)
-for (int x_win = 0; x_win < WINDOW; ++x_win) {
-  for (int y_win = 0; y_win < WINDOW; ++y_win) {
-    for (int i = 0; i < (int)WIDTH/WINDOW; ++i) {
-      for (int j = 0; j < (int)HEIGHT/WINDOW; ++j) {
-          j_float = 0.0f;
-          while((int)j_float < j) j_float++;
-          i_float = 0.0f;
-          while((int)i_float < i) i_float++;
-          x_win_float = 0.0f;
-          while((int)x_win_float < x_win) x_win_float++;
-          y_win_float = 0.0f;
-          while((int)y_win_float < y_win) y_win_float++;
-          // print("%d,%d\n",x,y);
-          // Vec3 *pixel = &image[x*WIDTH+y];
-          // printf("%d, %d\n", x,y);
-          int x = i*WINDOW + x_win;
-          int y = j*WINDOW + y_win;
-          float x_float = i_float*WINDOW_FLOAT + x_win_float;
-          float y_float = j_float*WINDOW_FLOAT + y_win_float;
-
-          Vec3 raydir = VEC3_xyz(-WIDTH_FLOAT / 2.0f + x_float, HEIGHT_FLOAT / 2.0f - y_float, -WIDTH_FLOAT * 1.0f);
-          raydir = vec_normalize(raydir);
-          pixel[x+y*WIDTH] = trace(VEC3_x(0.0f), raydir, spheres, num_spheres, 0);
-          // ++j_float;
-          // if(j_float >= HEIGHT/WINDOW) ++i_float;
-          // if(i_float >= WIDTH/WINDOW) ++y_win_float;
-          // if(y_win_float >= WINDOW) ++x_win_float;
-        }
-      }
+float x_float, y_float;
+#pragma omp parallel for collapse(2) firstprivate(pixel) schedule(static)
+  for (int x = 0; x < WIDTH; ++x) {
+    for (int y = 0; y < HEIGHT; ++y) {
+      x_float = 0.0f;
+      while((int)x_float < x) x_float++;
+      y_float = 0.0f;
+      while((int)y_float < y) y_float++;
+      Vec3 raydir = VEC3_xyz(-WIDTH_FLOAT / 2.0f + x_float, HEIGHT_FLOAT / 2.0f - y_float, -WIDTH_FLOAT * 1.0f);
+      raydir = vec_scale(raydir, 1280.0f / WIDTH_FLOAT);
+      raydir = vec_normalize(raydir);
+      // printf("Check pixel %04d, raydir %d %d %d\n", x + y * WIDTH, raydir.x,
+      //       raydir.y, raydir.z);
+      const Sphere *local_spheres = spheres_ptr[mempool_get_core_id()];
+      pixel[x + y * WIDTH] =
+          trace(VEC3_x(0.0f), raydir, local_spheres, num_spheres, 0);
     }
   }
-  
   // Save result to a PPM image (keep these flags if you compile under Windows)
   // FILE *fptr;
   // fptr = fopen("./untitled.ppm", "wb");
@@ -502,3 +484,4 @@ int main() {
 
   return 0;
 }
+

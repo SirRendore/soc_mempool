@@ -393,8 +393,8 @@ int main() {
                         .radius2 = 2 * 2,
                         .surfaceColor = VEC3_xyz(249, 199, 79),
                         .emissionColor = VEC3,
-                        .transparency = 0,
-                        .reflection = 0};
+                        .transparency = 1,
+                        .reflection = 1};
   spheres[3] = (Sphere){.center = VEC3_xyz(5, 0, -25),
                         .radius = 3,
                         .radius2 = 3 * 3,
